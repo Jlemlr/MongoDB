@@ -23,6 +23,8 @@ git clone git@github.com:Jlemlr/MongoDB.git
 - create connection (`mongodb://localhost:27017/`)
 - create a new database and open the json file from the github repository you downloaded
 
+You can directly write your queries in the UI of MongoDb Compass.
+
 ## Queries
 
 ## Easy
