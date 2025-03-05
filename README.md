@@ -1,4 +1,6 @@
 # Report MongoDB
+
+---
 ## Setup the database
 
 ### Setup docker
@@ -23,8 +25,43 @@ git clone git@github.com:Jlemlr/MongoDB.git
 - create connection (`mongodb://localhost:27017/`)
 - create a new database and open the `output_earthquake_data_geojson.json` file from the github repository you downloaded
 
-You can directly write your queries in the UI of MongoDb Compass.
+You can directly write your queries in the UI of `MongoDb` Compass.
 
+---
+## Preparing the dataset
+
+We used the `json` we generated for the Cassandra homework and ran the following code to transform the  'location' field into `GeoJSON` format.
+
+```python
+import json
+
+def transform_to_geojson(input_file, output_file):
+    # Load the original earthquake data from the input JSON file
+    with open(input_file, 'r') as file:
+        earthquake_data = [json.loads(line) for line in file]  # Adjust for each line being a JSON object
+
+    # Prepare the data with 'location' field in GeoJSON format
+    for earthquake in earthquake_data:
+        earthquake['location'] = {
+            "type": "Point",
+            "coordinates": earthquake['coordinates'][:2]  # Only use longitude, latitude for GeoJSON
+        }
+        del earthquake['coordinates']  # Remove the original coordinates field
+
+    # Output the transformed data to the output JSON file
+    with open(output_file, 'w') as outfile:
+        json.dump(earthquake_data, outfile, indent=4)
+
+    print(f"Data successfully transformed and saved to {output_file}.")
+
+# Usage
+input_file = 'merged_df.json'  # Replace with your input file path
+output_file = 'output_earthquake_data_geojson.json'  # Desired output file path
+
+transform_to_geojson(input_file, output_file)
+```
+
+---
 ## Queries
 
 ### Easy
@@ -54,17 +91,21 @@ db["Earthquake"].find({}, { id: 1, mag: 1, _id: 0 })
 db["Earthquake"].find({ status: "AUTOMATIC" })
 ```
 
-6. Find earthquakes that happened in the last 24 hours NOT WORKING
+6. Find the top 5 strongest earthquakes
 ```
-var twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
-db["Earthquake"].find({ time: { $gte: twentyFourHoursAgo } })
+db["Earthquake"].find({}).sort({ mag: -1 }).limit(5)
 ```
 
 ### Complex
 
-1. Find the top 5 strongest earthquakes
+1. Returns all earthquakes from the year 2013
 ```
-db["Earthquake"].find({}).sort({ mag: -1 }).limit(5)
+var startOf2013 = new Date("2013-01-01T00:00:00Z").getTime();
+var endOf2013 = new Date("2013-12-31T23:59:59Z").getTime();
+
+db["Earthquake"].find({ 
+    time: { $gte: startOf2013, $lte: endOf2013 } 
+});
 ```
 
 2. Get the average magnitude of earthquakes in California
