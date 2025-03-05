@@ -20,7 +20,7 @@ def transform_to_geojson(input_file, output_file):
     print(f"Data successfully transformed and saved to {output_file}.")
 
 # Usage
-input_file = '/content/merged_df.json'  # Replace with your input file path
+input_file = 'merged_df.json'  # Replace with your input file path
 output_file = 'output_earthquake_data_geojson.json'  # Desired output file path
 
 transform_to_geojson(input_file, output_file)
