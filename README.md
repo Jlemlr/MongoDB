@@ -62,12 +62,12 @@ db["Earthquake"].find({ time: { $gte: twentyFourHoursAgo } })
 
 ### Complex
 
->Find the top 5 strongest earthquakes
+1. Find the top 5 strongest earthquakes
 ```
 db["Earthquake"].find({}).sort({ mag: -1 }).limit(5)
 ```
 
->Get the average magnitude of earthquakes in California
+2. Get the average magnitude of earthquakes in California
 ```
 db["Earthquake"].aggregate([
   { $match: { place: /California/ } },
@@ -77,7 +77,7 @@ db["Earthquake"].aggregate([
 
 ### Hard
 
->Find the closest earthquake to a given location (latitude: 38.8232, longitude: -122.7955)
+1. Find the closest earthquake to a given location (latitude: 38.8232, longitude: -122.7955)
 ```
 db["Earthquake"].createIndex({ location: "2dsphere" })
 db["Earthquake"].find({
