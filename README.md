@@ -64,6 +64,7 @@ transform_to_geojson(input_file, output_file)
 ---
 ## Queries
 
+For more readability we didn't write the outputs (except for the hard query).
 ### Easy
 
 1. Retrieve all earthquakes
@@ -120,15 +121,29 @@ db["Earthquake"].aggregate([
 
 1. Find the closest earthquake to a given location (latitude: 38.8232, longitude: -122.7955)
 ```
-db["Earthquake"].createIndex({ location: "2dsphere" })
-db["Earthquake"].find({
-  location: {
-    $near: {
-      $geometry: {
-        type: "Point",
-        coordinates: [-122.7955, 38.8232]
+db["Earthquake"].find(
+  {
+    location: {
+      $near: {
+        $geometry: {
+          type: "Point",
+          coordinates: [-122.7955, 38.8232]
+        }
       }
     }
+  },
+  { location: 1, _id: 0 }
+).limit(1)
+```
+---
+```output
+{
+  location: {
+    type: 'Point',
+    coordinates: [
+      -122.7955,
+      38.8232
+    ]
   }
-}).limit(1)
+}
 ```
