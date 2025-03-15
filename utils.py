@@ -5,36 +5,7 @@ to prepare the `earthquakes_big.geojson.json` dataset in several ways.
 """
 
 import pandas as pd
-import timezonefinder
 import numpy as np
-
-def find_tz_offset(tz_name, tz_df):
-        """Get the offset from the given timezone name.
-        
-        This is useful for converting the timestamps in the dataset to the
-        correct, timezone-invariant format."""
-
-        row = tz_df[tz_df['utc'].apply(lambda x: tz_name in x)]
-        if len(row) > 0:
-            return row.iloc[0]['offset']
-        else:
-            return 0
-
-def apply_types(df: pd.DataFrame) -> pd.DataFrame:
-    """Apply the correct types to the given `merged_df` DataFrame.
-    
-    This method can be called after `merged_json` was loaded into a DataFrame
-    to apply the correct types to the columns.
-    
-    We leave 'ids', 'sources', 'types', 'coordinates' as objects as they are
-    lists that sometimes contain more than one value.
-    Timestamps are assumed to be in milliseconds.
-    """
-
-    # Strings
-    df[['alert', 'code', 'detail', 'id', 'magtype', 'place', 'net', 'url', 'status', 'type']] = df[['alert', 'code', 'detail', 'id', 'magtype', 'place', 'net', 'url', 'status', 'type']].astype(pd.StringDtype())
-
-    return df
 
 def prepare_dataset(df_path) -> pd.DataFrame:
     """Prepare the original dataset file named 'merged_df'.
@@ -59,6 +30,10 @@ def prepare_dataset(df_path) -> pd.DataFrame:
     df_properties['updated'] = df_properties.apply(lambda t: pd.Timestamp(t['updated'], unit='ms', tz=t['tz']) if not np.isnan(t['updated']) else None, axis=1)
     df_properties.drop('tz', axis=1, inplace=True)
 
+    # There are some duplicate values in `magType` column but formatted differently.
+    # So let’s remove the duplicate values from the `magType` column.
+    df_properties['magType'] = df_properties['magType'].str.lower().str.replace('_', '')
+
     # If it caused a tsunami (convert to Boolean correct format)
     df_properties['tsunami'] = df_properties['tsunami'] == 1
 
@@ -70,15 +45,9 @@ def prepare_dataset(df_path) -> pd.DataFrame:
 
     merged_df.rename(str.lower, axis='columns', inplace=True)
 
-    merged_df = apply_types(merged_df)
+    str_columns = ['alert', 'code', 'detail', 'id', 'magtype', 'place', 'net', 'url', 'status', 'type']
+    merged_df[str_columns] = merged_df[str_columns].astype(pd.StringDtype())
 
     return merged_df
 
 DATASET_PATH = 'earthquakes_big.geojson.json'
-
-# This is a file we created to extract the UTC timezone from a timezone name
-TIMEZONES_PATH = 'timezones.json'
-
-TZ_DF = pd.read_json('timezones.json')
-TZ_FINDER = timezonefinder.TimezoneFinder()
-TZ_NAMES = {tz_name: find_tz_offset(tz_name, TZ_DF) for tz_name in TZ_FINDER.timezone_names}
